@@ -63,5 +63,11 @@ public class FireflyFabricClient implements ClientModInitializer {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             FireflyCommand.register(dispatcher);
         });
+
+        // 6. Couche de rendu translucide pour le bocal en verre
+        net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap.putBlock(
+                FireflyFabric.FIREFLY_JAR_BLOCK,
+                net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT
+        );
     }
 }
