@@ -233,31 +233,6 @@ public class FireflyEntity extends Entity {
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
-        ItemStack heldItem = player.getItemInHand(hand);
-        if (heldItem.is(Items.GLASS_BOTTLE)) {
-            player.playSound(SoundEvents.BOTTLE_FILL, 1.0F, 1.0F);
-            if (!player.getAbilities().instabuild) {
-                heldItem.shrink(1);
-            }
-            Item jarItem = BuiltInRegistries.ITEM.getOptional(ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "firefly_jar"))
-                    .orElse(null);
-            if (jarItem != null && jarItem != Items.AIR) {
-                ItemStack jarStack = new ItemStack(jarItem);
-                if (!player.getInventory().add(jarStack)) {
-                    player.drop(jarStack, false);
-                }
-            }
-            if (this.level().isClientSide()) {
-                for (int i = 0; i < 6; i++) {
-                    double px = this.getX() + (this.random.nextDouble() - 0.5D) * 0.25D;
-                    double py = this.getY() + (this.random.nextDouble() - 0.5D) * 0.25D;
-                    double pz = this.getZ() + (this.random.nextDouble() - 0.5D) * 0.25D;
-                    this.level().addParticle(ParticleTypes.GLOW, px, py, pz, 0.0D, 0.0D, 0.0D);
-                }
-            }
-            this.discard();
-            return InteractionResult.SUCCESS;
-        }
         return super.interact(player, hand);
     }
 
