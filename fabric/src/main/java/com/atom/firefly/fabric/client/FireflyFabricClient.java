@@ -64,10 +64,10 @@ public class FireflyFabricClient implements ClientModInitializer {
             FireflyCommand.register(dispatcher);
         });
 
-        // 6. Couche de rendu cutout pour le bocal en verre
+        // 6. Couche de rendu translucide pour le bocal en verre
         net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlock(
                 FireflyFabric.FIREFLY_JAR_BLOCK,
-                net.minecraft.client.renderer.RenderType.cutout()
+                net.minecraft.client.renderer.RenderType.translucent()
         );
     }
 }

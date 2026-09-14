@@ -1,5 +1,6 @@
 {
   "credit": "Better Fireflies Mod",
+  "render_type": "minecraft:translucent",
   "ambientocclusion": false,
   "textures": {
     "particle": "firefly:block/firefly_jar_glass",
