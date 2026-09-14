@@ -5,5 +5,6 @@
   "command.firefly.particles.enabled": "Particules : ACTIVÉES",
   "command.firefly.particles.disabled": "Particules : DÉSACTIVÉES",
   "block.firefly.firefly_jar": "Luciole en bocal",
-  "item.firefly.firefly_jar": "Luciole en bocal"
+  "item.firefly.firefly_jar": "Luciole en bocal",
+  "chat.firefly.server_required": "La capture de lucioles en bocal nécessite Better Fireflies sur le serveur !"
 }
