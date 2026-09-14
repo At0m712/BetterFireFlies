@@ -45,6 +45,7 @@ public class FireflyFabric implements ModInitializer {
                     .sized(0.35F, 0.35F)
                     .build(FIREFLY_KEY)
     );
+    public static final EntityType<FireflyEntity> FIREFLY_ENTITY = FIREFLY;
 
     // 2. Particule 2D de luciole
     public static final SimpleParticleType FIREFLY_PARTICLE = Registry.register(
