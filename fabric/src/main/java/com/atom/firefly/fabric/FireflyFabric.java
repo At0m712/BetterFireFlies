@@ -105,7 +105,11 @@ public class FireflyFabric implements ModInitializer {
         });
 
         // Ajout à l'onglet inventaire créatif des blocs fonctionnels
-        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(output -> {
+        ResourceKey<net.minecraft.world.item.CreativeModeTab> functionalBlocks = ResourceKey.create(
+                Registries.CREATIVE_MODE_TAB,
+                Identifier.fromNamespaceAndPath("minecraft", "functional_blocks")
+        );
+        CreativeModeTabEvents.modifyOutputEvent(functionalBlocks).register(output -> {
             output.accept(FIREFLY_JAR_ITEM);
         });
 

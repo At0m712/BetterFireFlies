@@ -10,7 +10,11 @@ configurations {
 def extractFabricApi = tasks.register('extractFabricApi', Copy) {
     from {
         configurations.fabricApiJars.files.collect { jar ->
-            zipTree(jar).matching { include 'META-INF/jars/*.jar' }
+            zipTree(jar).matching {
+                include 'META-INF/jars/*.jar'
+                exclude 'META-INF/jars/*data-generation*'
+                exclude 'META-INF/jars/*gametest*'
+            }
         }
     }
     into layout.buildDirectory.dir("fabric-api-jars")
