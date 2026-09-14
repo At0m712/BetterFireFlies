@@ -5,5 +5,6 @@
   "command.firefly.particles.enabled": "Particles : ENABLED",
   "command.firefly.particles.disabled": "Particles : DISABLED",
   "block.firefly.firefly_jar": "Firefly in a Jar",
-  "item.firefly.firefly_jar": "Firefly in a Jar"
+  "item.firefly.firefly_jar": "Firefly in a Jar",
+  "chat.firefly.server_required": "Capturing fireflies into jars requires Better Fireflies on the server!"
 }
