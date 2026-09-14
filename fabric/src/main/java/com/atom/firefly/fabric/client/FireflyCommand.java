@@ -2,7 +2,7 @@ package com.atom.firefly.fabric.client;
 
 import com.atom.firefly.config.FireflyConfig;
 import com.mojang.brigadier.CommandDispatcher;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.network.chat.Component;
 
@@ -11,7 +11,7 @@ public class FireflyCommand {
     public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
 
         // Dynamic light toggle command
-        dispatcher.register(ClientCommandManager.literal("fireflylight")
+        dispatcher.register(ClientCommands.literal("fireflylight")
                 .executes(context -> {
                     FireflyConfig config = FireflyConfig.get();
                     config.enableDynamicLight = !config.enableDynamicLight;
@@ -26,7 +26,7 @@ public class FireflyCommand {
         );
 
         // Ambient particles toggle command
-        dispatcher.register(ClientCommandManager.literal("fireflyparticles")
+        dispatcher.register(ClientCommands.literal("fireflyparticles")
                 .executes(context -> {
                     FireflyConfig config = FireflyConfig.get();
                     config.enableParticles = !config.enableParticles;

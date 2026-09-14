@@ -10,8 +10,8 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.core.particles.ParticleTypes;
@@ -26,11 +26,11 @@ public class FireflyFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         // 1. Enregistrement des modèles et du rendu
-        EntityModelLayerRegistry.registerModelLayer(FireflyModel.LAYER_LOCATION, FireflyModel::createBodyLayer);
+        ModelLayerRegistry.registerModelLayer(FireflyModel.LAYER_LOCATION, FireflyModel::createBodyLayer);
         EntityRendererRegistry.register(FireflyFabric.FIREFLY, FireflyRenderer::new);
 
         // 2. Enregistrement de la particule 2D de luciole
-        ParticleFactoryRegistry.getInstance().register(FireflyFabric.FIREFLY_PARTICLE, FireflyJarParticle.Provider::new);
+        ParticleProviderRegistry.getInstance().register(FireflyFabric.FIREFLY_PARTICLE, FireflyJarParticle.Provider::new);
 
         // 3. Enregistrement du spawner de lucioles
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -47,9 +47,9 @@ public class FireflyFabricClient implements ClientModInitializer {
                     if (ClientPlayNetworking.canSend(CatchFireflyPayload.TYPE)) {
                         player.playSound(SoundEvents.BOTTLE_FILL, 1.0F, 1.0F);
                         for (int i = 0; i < 8; i++) {
-                            double px = firefly.getX() + (world.random.nextDouble() - 0.5D) * 0.3D;
-                            double py = firefly.getY() + (world.random.nextDouble() - 0.5D) * 0.3D;
-                            double pz = firefly.getZ() + (world.random.nextDouble() - 0.5D) * 0.3D;
+                            double px = firefly.getX() + (world.getRandom().nextDouble() - 0.5D) * 0.3D;
+                            double py = firefly.getY() + (world.getRandom().nextDouble() - 0.5D) * 0.3D;
+                            double pz = firefly.getZ() + (world.getRandom().nextDouble() - 0.5D) * 0.3D;
                             world.addParticle(ParticleTypes.GLOW, px, py, pz, 0.0D, 0.0D, 0.0D);
                         }
                         firefly.discard();
@@ -57,9 +57,8 @@ public class FireflyFabricClient implements ClientModInitializer {
                         return InteractionResult.SUCCESS;
                     } else {
                         // Serveur Vanilla / sans le mod : repli propre sans crash
-                        player.displayClientMessage(
-                                net.minecraft.network.chat.Component.translatable("chat.firefly.server_required"),
-                                true
+                        player.sendOverlayMessage(
+                                net.minecraft.network.chat.Component.translatable("chat.firefly.server_required")
                         );
                         return InteractionResult.CONSUME;
                     }
@@ -72,11 +71,5 @@ public class FireflyFabricClient implements ClientModInitializer {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             FireflyCommand.register(dispatcher);
         });
-
-        // 6. Couche de rendu translucide pour le bocal en verre
-        net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap.putBlock(
-                FireflyFabric.FIREFLY_JAR_BLOCK,
-                net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT
-        );
     }
 }

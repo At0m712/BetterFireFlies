@@ -43,7 +43,7 @@ public class FireflyEntity extends Entity {
     public FireflyEntity(EntityType<?> type, Level level) {
         super(type, level);
         this.noPhysics = true;
-        this.lifetime = 600 + level.random.nextInt(600);
+        this.lifetime = 600 + level.getRandom().nextInt(600);
     }
 
     public FireflyVariant getVariant() {
@@ -229,10 +229,6 @@ public class FireflyEntity extends Entity {
         super.remove(reason);
     }
 
-    @Override
-    public InteractionResult interact(Player player, InteractionHand hand) {
-        return super.interact(player, hand);
-    }
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource damageSource, float amount) {

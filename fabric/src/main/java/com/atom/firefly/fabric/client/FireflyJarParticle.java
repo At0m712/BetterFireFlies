@@ -12,7 +12,7 @@ public class FireflyJarParticle extends SingleQuadParticle {
     private final SpriteSet sprites;
 
     public FireflyJarParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, SpriteSet sprites) {
-        super(level, x, y, z, vx, vy, vz, sprites.get(level.random));
+        super(level, x, y, z, vx, vy, vz, sprites.get(level.getRandom()));
         this.sprites = sprites;
         this.lifetime = 35 + this.random.nextInt(35);
         this.quadSize = 0.055F;
@@ -29,7 +29,7 @@ public class FireflyJarParticle extends SingleQuadParticle {
     }
 
     @Override
-    public int getLightColor(float partialTick) {
+    public int getLightCoords(float partialTick) {
         return 15728880;
     }
 

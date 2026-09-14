@@ -21,7 +21,7 @@ public class FireflySpawner {
         if (level == null || client.player == null || client.isPaused()) return;
 
         FireflyConfig config = FireflyConfig.get();
-        if (level.random.nextInt(Math.max(1, config.spawnChance)) != 0) return;
+        if (level.getRandom().nextInt(Math.max(1, config.spawnChance)) != 0) return;
 
         // Dynamic leak-free entity counting around the player
         AABB searchBox = client.player.getBoundingBox().inflate(64.0D);
@@ -29,9 +29,9 @@ public class FireflySpawner {
         if (currentCount >= config.maxFireflies) return;
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(
-                client.player.getX() + (level.random.nextDouble() - 0.5) * 64,
+                client.player.getX() + (level.getRandom().nextDouble() - 0.5) * 64,
                 client.player.getY() + 6,
-                client.player.getZ() + (level.random.nextDouble() - 0.5) * 64
+                client.player.getZ() + (level.getRandom().nextDouble() - 0.5) * 64
         );
 
         // Find ground level below proposed spawn pos
@@ -48,7 +48,7 @@ public class FireflySpawner {
         pos.move(0, 1, 0);
 
         boolean isDarkCave = level.getBrightness(LightLayer.SKY, pos) == 0 && level.getBrightness(LightLayer.BLOCK, pos) < 4;
-        long timeOfDay = level.getDayTime() % 24000;
+        long timeOfDay = level.getOverworldClockTime() % 24000;
         boolean isNightOrStorm = (timeOfDay >= 13000 && timeOfDay < 23000) || level.isThundering();
 
         // Caves can spawn anytime; surface biomes spawn only at night or during dark storms
@@ -68,15 +68,15 @@ public class FireflySpawner {
         if (!isAllowed) return;
 
         int remaining = config.maxFireflies - currentCount;
-        int clusterSize = Math.min(remaining, 2 + level.random.nextInt(4));
+        int clusterSize = Math.min(remaining, 2 + level.getRandom().nextInt(4));
         int baseX = pos.getX();
         int baseY = pos.getY();
         int baseZ = pos.getZ();
 
         for (int i = 0; i < clusterSize; i++) {
-            double finalX = baseX + (level.random.nextDouble() - 0.5) * 6.0;
-            double finalY = baseY + 0.5 + level.random.nextDouble() * 2.0;
-            double finalZ = baseZ + (level.random.nextDouble() - 0.5) * 6.0;
+            double finalX = baseX + (level.getRandom().nextDouble() - 0.5) * 6.0;
+            double finalY = baseY + 0.5 + level.getRandom().nextDouble() * 2.0;
+            double finalZ = baseZ + (level.getRandom().nextDouble() - 0.5) * 6.0;
 
             pos.set(finalX, finalY, finalZ);
 

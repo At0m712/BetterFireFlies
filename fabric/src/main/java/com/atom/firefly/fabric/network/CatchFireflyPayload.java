@@ -1,7 +1,7 @@
 package com.atom.firefly.fabric.network;
 
 import com.atom.firefly.Constants;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -12,7 +12,7 @@ public record CatchFireflyPayload(boolean mainHand) implements CustomPacketPaylo
             Identifier.fromNamespaceAndPath(Constants.MOD_ID, "catch_firefly")
     );
 
-    public static final StreamCodec<FriendlyByteBuf, CatchFireflyPayload> CODEC = StreamCodec.composite(
+    public static final StreamCodec<RegistryFriendlyByteBuf, CatchFireflyPayload> CODEC = StreamCodec.composite(
             ByteBufCodecs.BOOL,
             CatchFireflyPayload::mainHand,
             CatchFireflyPayload::new

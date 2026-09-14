@@ -7,7 +7,7 @@ import com.atom.firefly.client.FireflyEntity;
 import com.atom.firefly.fabric.network.CatchFireflyPayload;
 import com.atom.firefly.item.FireflyJarItem;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.Registry;
@@ -86,7 +86,7 @@ public class FireflyFabric implements ModInitializer {
         CommonClass.init();
 
         // Réseau : enregistrement du paquet pour capturer une luciole
-        PayloadTypeRegistry.playC2S().register(CatchFireflyPayload.TYPE, CatchFireflyPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(CatchFireflyPayload.TYPE, CatchFireflyPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(CatchFireflyPayload.TYPE, (payload, context) -> {
             ServerPlayer player = context.player();
             InteractionHand hand = payload.mainHand() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
@@ -105,8 +105,8 @@ public class FireflyFabric implements ModInitializer {
         });
 
         // Ajout à l'onglet inventaire créatif des blocs fonctionnels
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(entries -> {
-            entries.accept(FIREFLY_JAR_ITEM);
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(output -> {
+            output.accept(FIREFLY_JAR_ITEM);
         });
 
         Constants.LOG.info("FireFly 3D (Fabric) initialized!");

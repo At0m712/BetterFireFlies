@@ -1,25 +1,34 @@
 plugins {
     id 'multiloader-loader'
-    id 'fabric-loom'
+    id 'net.fabricmc.fabric-loom'
     id "me.modmuss50.mod-publish-plugin" version "2.0.0"
 }
+configurations {
+    fabricApiJars
+}
+
+def extractFabricApi = tasks.register('extractFabricApi', Copy) {
+    from {
+        configurations.fabricApiJars.files.collect { jar ->
+            zipTree(jar).matching { include 'META-INF/jars/*.jar' }
+        }
+    }
+    into layout.buildDirectory.dir("fabric-api-jars")
+    eachFile { it.path = it.name }
+    includeEmptyDirs = false
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
-    mappings loom.layered {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${parchment_minecraft}:${parchment_version}@zip")
-    }
-    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    fabricApiJars "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    implementation fileTree(dir: layout.buildDirectory.dir("fabric-api-jars"), include: ['*.jar']).builtBy(extractFabricApi)
 }
 
 loom {
     def aw = project(':common').file("src/main/resources/${mod_id}.accesswidener")
     if (aw.exists()) {
         accessWidenerPath.set(aw)
-    }
-    mixin {
-        defaultRefmapName.set("${mod_id}.refmap.json")
     }
     runs {
         client {
@@ -37,7 +46,7 @@ loom {
     }
 }
 publishMods {
-    file = remapJar.archiveFile
+    file = jar.archiveFile
     changelog = rootProject.file("CHANGELOG.md").text
     type = STABLE
     version = "${project.property('version')}"

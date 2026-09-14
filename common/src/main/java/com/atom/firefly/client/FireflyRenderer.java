@@ -6,7 +6,7 @@ import com.mojang.math.Axis;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
@@ -20,7 +20,7 @@ public class FireflyRenderer extends EntityRenderer<FireflyEntity, FireflyRender
     private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "textures/entity/firefly_texture.png");
     private static final Identifier GLOW_TEXTURE = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "textures/entity/firefly_glow.png");
 
-    private static final RenderType SOLID_RENDER_TYPE = RenderTypes.entityCutoutNoCull(TEXTURE);
+    private static final RenderType SOLID_RENDER_TYPE = RenderTypes.entityCutout(TEXTURE);
     private static final RenderType GLOW_RENDER_TYPE = RenderTypes.eyes(GLOW_TEXTURE);
 
     public FireflyRenderer(EntityRendererProvider.Context context) {
