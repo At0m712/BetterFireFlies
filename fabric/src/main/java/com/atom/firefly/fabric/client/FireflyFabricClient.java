@@ -41,24 +41,33 @@ public class FireflyFabricClient implements ClientModInitializer {
         // 4. Enregistrement de la particule 2D de luciole dans le bocal
         ParticleFactoryRegistry.getInstance().register(FireflyFabric.FIREFLY_PARTICLE, FireflyJarParticle.Provider::new);
 
-        // 5. Couche de rendu cutout pour le verre du bocal
-        BlockRenderLayerMap.INSTANCE.putBlock(FireflyFabric.FIREFLY_JAR_BLOCK, RenderType.cutout());
+        // 5. Couche de rendu translucide pour le verre du bocal
+        BlockRenderLayerMap.INSTANCE.putBlock(FireflyFabric.FIREFLY_JAR_BLOCK, RenderType.translucent());
 
-        // 6. Capture de la luciole avec fiole
+        // 6. Capture de la luciole avec fiole (Support hybride Graceful Fallback)
         UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
             if (world.isClientSide() && entity instanceof FireflyEntity firefly) {
                 ItemStack held = player.getItemInHand(hand);
                 if (held.is(Items.GLASS_BOTTLE)) {
-                    player.playSound(SoundEvents.BOTTLE_FILL, 1.0F, 1.0F);
-                    for (int i = 0; i < 8; i++) {
-                        double px = firefly.getX() + (world.random.nextDouble() - 0.5D) * 0.3D;
-                        double py = firefly.getY() + (world.random.nextDouble() - 0.5D) * 0.3D;
-                        double pz = firefly.getZ() + (world.random.nextDouble() - 0.5D) * 0.3D;
-                        world.addParticle(ParticleTypes.GLOW, px, py, pz, 0.0D, 0.0D, 0.0D);
+                    if (ClientPlayNetworking.canSend(CatchFireflyPayload.TYPE)) {
+                        player.playSound(SoundEvents.BOTTLE_FILL, 1.0F, 1.0F);
+                        for (int i = 0; i < 8; i++) {
+                            double px = firefly.getX() + (world.random.nextDouble() - 0.5D) * 0.3D;
+                            double py = firefly.getY() + (world.random.nextDouble() - 0.5D) * 0.3D;
+                            double pz = firefly.getZ() + (world.random.nextDouble() - 0.5D) * 0.3D;
+                            world.addParticle(ParticleTypes.GLOW, px, py, pz, 0.0D, 0.0D, 0.0D);
+                        }
+                        firefly.discard();
+                        ClientPlayNetworking.send(new CatchFireflyPayload(hand == InteractionHand.MAIN_HAND));
+                        return InteractionResult.SUCCESS;
+                    } else {
+                        // Serveur Vanilla / sans le mod : repli propre sans crash
+                        player.displayClientMessage(
+                                net.minecraft.network.chat.Component.translatable("chat.firefly.server_required"),
+                                true
+                        );
+                        return InteractionResult.CONSUME;
                     }
-                    firefly.discard();
-                    ClientPlayNetworking.send(new CatchFireflyPayload(hand == InteractionHand.MAIN_HAND));
-                    return InteractionResult.SUCCESS;
                 }
             }
             return InteractionResult.PASS;
