@@ -47,13 +47,13 @@ public class FireflyRenderer extends EntityRenderer<FireflyEntity, FireflyRender
         poseStack.scale(0.3F, 0.3F, 0.3F);
         poseStack.scale(-1.0F, -1.0F, 1.0F);
 
-        poseStack.mulPose(Axis.YP.rotationDegrees(state.yRot));
+        poseStack.rotateDegrees(Axis.YP, state.yRot);
 
         this.model.setupAnim(state);
 
-        collector.submitModel(this.model, state, poseStack, SOLID_RENDER_TYPE, state.lightCoords, OverlayTexture.NO_OVERLAY, -1, null, EntityRenderState.NO_OUTLINE, null);
+        collector.submitModel(this.model, state, poseStack, SOLID_RENDER_TYPE, state.lightCoords, OverlayTexture.NO_OVERLAY, -1);
 
-        collector.submitModel(this.model, state, poseStack, GLOW_RENDER_TYPE, 15728880, OverlayTexture.NO_OVERLAY, -1, null, EntityRenderState.NO_OUTLINE, null);
+        collector.submitModel(this.model, state, poseStack, GLOW_RENDER_TYPE, 15728880, OverlayTexture.NO_OVERLAY, -1);
 
         poseStack.popPose();
 

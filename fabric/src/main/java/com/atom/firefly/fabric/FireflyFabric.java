@@ -97,7 +97,7 @@ public class FireflyFabric implements ModInitializer {
                 }
                 ItemStack jarStack = new ItemStack(FIREFLY_JAR_ITEM);
                 if (!player.getInventory().add(jarStack)) {
-                    player.drop(jarStack, false);
+                    player.drop(jarStack, false, net.minecraft.util.Prediction.SERVER_ONLY);
                 }
                 player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
                         SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 1.0F, 1.0F);
