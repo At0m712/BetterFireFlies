@@ -1,6 +1,7 @@
 plugins {
     id 'multiloader-loader'
     id 'net.neoforged.moddev'
+    id "me.modmuss50.mod-publish-plugin" version "2.0.0"
 }
 
 neoForge {
@@ -9,10 +10,6 @@ neoForge {
     def at = project(':common').file('src/main/resources/META-INF/accesstransformer.cfg')
     if (at.exists()) {
         accessTransformers.add(at.absolutePath)
-    }
-    parchment {
-        minecraftVersion = parchment_minecraft
-        mappingsVersion = parchment_version
     }
     runs {
         configureEach {
@@ -37,3 +34,31 @@ neoForge {
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+publishMods {
+    file = jar.archiveFile
+    changelog = rootProject.file("CHANGELOG.md").text
+    type = STABLE
+    version = "${project.property('version')}"
+    modLoaders.add("neoforge")
+
+    curseforge {
+        displayName = file.map { it.asFile.name }
+        projectId = property("curseforge_id")
+        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
+        changelogType = "markdown"
+
+        minecraftVersions.addAll(property("publish_minecraft_versions").split(",") as List<String>)
+
+        client = true
+        server = false
+    }
+
+    modrinth {
+        displayName = "Better FireFlies ${project.property('version')}"
+        projectId = property("modrinth_id")
+        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+
+        minecraftVersions.addAll(property("publish_minecraft_versions").split(",") as List<String>)
+    }
+}
