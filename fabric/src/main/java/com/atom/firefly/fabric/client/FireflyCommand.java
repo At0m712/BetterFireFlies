@@ -17,9 +17,9 @@ public class FireflyCommand {
                     config.enableDynamicLight = !config.enableDynamicLight;
                     FireflyConfig.save();
 
-                    String status = config.enableDynamicLight ? "§aENABLED" : "§cDISABLED";
+                    String key = config.enableDynamicLight ? "command.firefly.light.enabled" : "command.firefly.light.disabled";
                     context.getSource().sendFeedback(
-                            Component.literal("§e[FireFly] §fDynamic light : " + status)
+                            Component.literal("§e[FireFly] §f").append(Component.translatable(key))
                     );
                     return 1;
                 })
@@ -32,9 +32,9 @@ public class FireflyCommand {
                     config.enableParticles = !config.enableParticles;
                     FireflyConfig.save();
 
-                    String status = config.enableParticles ? "§aENABLED" : "§cDISABLED";
+                    String key = config.enableParticles ? "command.firefly.particles.enabled" : "command.firefly.particles.disabled";
                     context.getSource().sendFeedback(
-                            Component.literal("§e[FireFly] §fParticles : " + status)
+                            Component.literal("§e[FireFly] §f").append(Component.translatable(key))
                     );
                     return 1;
                 })
