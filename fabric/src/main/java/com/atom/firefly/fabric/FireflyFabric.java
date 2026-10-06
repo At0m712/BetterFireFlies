@@ -22,7 +22,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -91,7 +91,11 @@ public class FireflyFabric implements ModInitializer {
             ServerPlayer player = context.player();
             InteractionHand hand = payload.mainHand() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
             ItemStack held = player.getItemInHand(hand);
+            if (player.getCooldowns().isOnCooldown(held)) {
+                return;
+            }
             if (held.is(Items.GLASS_BOTTLE)) {
+                player.getCooldowns().addCooldown(held, 10);
                 if (!player.getAbilities().instabuild) {
                     held.shrink(1);
                 }
@@ -105,7 +109,7 @@ public class FireflyFabric implements ModInitializer {
         });
 
         // Ajout à l'onglet inventaire créatif des blocs fonctionnels
-        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(output -> {
+        CreativeModeTabEvents.modifyOutputEvent(ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.withDefaultNamespace("functional_blocks"))).register(output -> {
             output.accept(FIREFLY_JAR_ITEM);
         });
 
