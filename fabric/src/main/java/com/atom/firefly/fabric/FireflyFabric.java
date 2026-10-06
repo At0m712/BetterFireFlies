@@ -91,7 +91,11 @@ public class FireflyFabric implements ModInitializer {
             ServerPlayer player = context.player();
             InteractionHand hand = payload.mainHand() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
             ItemStack held = player.getItemInHand(hand);
+            if (player.getCooldowns().isOnCooldown(held)) {
+                return;
+            }
             if (held.is(Items.GLASS_BOTTLE)) {
+                player.getCooldowns().addCooldown(held, 10);
                 if (!player.getAbilities().instabuild) {
                     held.shrink(1);
                 }

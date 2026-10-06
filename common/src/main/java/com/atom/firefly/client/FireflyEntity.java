@@ -191,7 +191,7 @@ public class FireflyEntity extends Entity {
     }
 
     private void updateDynamicLight() {
-        if (!FireflyConfig.get().enableDynamicLight) {
+        if (!this.level().isClientSide() || !FireflyConfig.get().enableDynamicLight) {
             this.clearDynamicLight();
             return;
         }
@@ -211,7 +211,7 @@ public class FireflyEntity extends Entity {
 
     private void clearDynamicLight() {
         if (this.lastLightPos != null) {
-            if (this.level().getBlockState(this.lastLightPos).is(Blocks.LIGHT)) {
+            if (this.level().isClientSide() && this.level().getBlockState(this.lastLightPos).is(Blocks.LIGHT)) {
                 this.level().setBlock(this.lastLightPos, Blocks.AIR.defaultBlockState(), 3);
             }
             this.lastLightPos = null;
