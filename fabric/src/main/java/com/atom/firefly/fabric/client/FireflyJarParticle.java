@@ -10,12 +10,18 @@ import net.minecraft.util.RandomSource;
 
 public class FireflyJarParticle extends SingleQuadParticle {
     private final SpriteSet sprites;
+    private final double startX;
+    private final double startY;
+    private final double startZ;
 
     public FireflyJarParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, SpriteSet sprites) {
         super(level, x, y, z, vx, vy, vz, sprites.get(level.getRandom()));
         this.sprites = sprites;
-        this.lifetime = 35 + this.random.nextInt(35);
-        this.quadSize = 0.055F;
+        this.startX = x;
+        this.startY = y;
+        this.startZ = z;
+        this.lifetime = 100 + this.random.nextInt(60);
+        this.quadSize = 0.095F;
         this.hasPhysics = false;
         this.xd = (this.random.nextDouble() - 0.5D) * 0.008D;
         this.yd = (this.random.nextDouble() - 0.5D) * 0.006D;
@@ -47,6 +53,16 @@ public class FireflyJarParticle extends SingleQuadParticle {
         this.xd += (this.random.nextDouble() - 0.5D) * 0.003D;
         this.yd += (this.random.nextDouble() - 0.5D) * 0.002D;
         this.zd += (this.random.nextDouble() - 0.5D) * 0.003D;
+
+        if (Math.abs(this.x + this.xd - this.startX) > 0.16D) {
+            this.xd = -this.xd * 0.5D;
+        }
+        if (Math.abs(this.y + this.yd - this.startY) > 0.12D) {
+            this.yd = -this.yd * 0.5D;
+        }
+        if (Math.abs(this.z + this.zd - this.startZ) > 0.16D) {
+            this.zd = -this.zd * 0.5D;
+        }
 
         this.xd *= 0.90D;
         this.yd *= 0.88D;
