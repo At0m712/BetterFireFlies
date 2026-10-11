@@ -3,30 +3,11 @@ plugins {
     id 'net.fabricmc.fabric-loom'
     id "me.modmuss50.mod-publish-plugin" version "2.0.0"
 }
-configurations {
-    fabricApiJars
-}
-
-def extractFabricApi = tasks.register('extractFabricApi', Copy) {
-    from {
-        configurations.fabricApiJars.files.collect { jar ->
-            zipTree(jar).matching {
-                include 'META-INF/jars/*.jar'
-                exclude 'META-INF/jars/*data-generation*'
-                exclude 'META-INF/jars/*gametest*'
-            }
-        }
-    }
-    into layout.buildDirectory.dir("fabric-api-jars")
-    eachFile { it.path = it.name }
-    includeEmptyDirs = false
-}
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-    fabricApiJars "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
-    implementation fileTree(dir: layout.buildDirectory.dir("fabric-api-jars"), include: ['*.jar']).builtBy(extractFabricApi)
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 }
 
 loom {
