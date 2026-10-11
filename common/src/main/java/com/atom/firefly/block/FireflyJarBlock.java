@@ -53,13 +53,13 @@ public class FireflyJarBlock extends LanternBlock {
             particleToSpawn = simpleParticle;
         }
 
-        // Spawn 1 to 3 animated 2D firefly particles inside the glass jar
-        int count = 1 + random.nextInt(2);
+        // Spawn 2 to 4 animated 2D firefly particles inside the glass jar
+        int count = 2 + random.nextInt(3);
         for (int i = 0; i < count; i++) {
-            double px = pos.getX() + 0.5D + (random.nextDouble() - 0.5D) * 0.28D;
-            double py = pos.getY() + yCenter + (random.nextDouble() - 0.5D) * 0.20D;
-            double pz = pos.getZ() + 0.5D + (random.nextDouble() - 0.5D) * 0.28D;
-            level.addParticle(particleToSpawn, px, py, pz, 0.0D, 0.0D, 0.0D);
+            double px = pos.getX() + 0.5D + (random.nextDouble() - 0.5D) * 0.24D;
+            double py = pos.getY() + yCenter + (random.nextDouble() - 0.5D) * 0.16D;
+            double pz = pos.getZ() + 0.5D + (random.nextDouble() - 0.5D) * 0.24D;
+            level.addAlwaysVisibleParticle(particleToSpawn, true, px, py, pz, 0.0D, 0.0D, 0.0D);
         }
     }
 }
