@@ -51,9 +51,9 @@ public class FireflyRenderer extends EntityRenderer<FireflyEntity, FireflyRender
 
         this.model.setupAnim(state);
 
-        collector.submitModel(this.model, state, poseStack, SOLID_RENDER_TYPE, state.lightCoords, OverlayTexture.NO_OVERLAY, -1);
+        collector.submitModel(this.model, state, poseStack, SOLID_RENDER_TYPE, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
 
-        collector.submitModel(this.model, state, poseStack, GLOW_RENDER_TYPE, 15728880, OverlayTexture.NO_OVERLAY, -1);
+        collector.submitModel(this.model, state, poseStack, GLOW_RENDER_TYPE, 15728880, OverlayTexture.NO_OVERLAY, EntityRenderState.NO_OUTLINE);
 
         poseStack.popPose();
 
