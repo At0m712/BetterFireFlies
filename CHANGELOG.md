@@ -1,4 +1,4 @@
 # 📋 Changelog - Better FireFlies
 
-## [1.0.4]
-- Fix white glowing outline on fireflies.
+## [1.0.5]
+- Improved firefly flight movement, organic wandering, and mod compatibility.

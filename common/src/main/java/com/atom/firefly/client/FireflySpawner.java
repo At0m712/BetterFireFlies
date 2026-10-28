@@ -83,6 +83,9 @@ public class FireflySpawner {
             if (level.getBlockState(pos).isAir()) {
                 FireflyEntity firefly = new FireflyEntity(entityType, level);
                 firefly.setPos(finalX, finalY, finalZ);
+                if (clientEntityIdCounter < -1000000000) {
+                    clientEntityIdCounter = -10000;
+                }
                 firefly.setId(clientEntityIdCounter--);
                 firefly.setVariant(FireflyVariant.fromBiome(level.getBiome(pos)));
                 level.addEntity(firefly);
