@@ -4,23 +4,14 @@ import com.atom.firefly.Constants;
 import com.atom.firefly.config.FireflyConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LightBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -39,11 +30,14 @@ public class FireflyEntity extends Entity {
 
     private double vx, vy, vz;
     private double targetX, targetY, targetZ;
+    private int hoverTicks = 0;
+    private float wanderPhase = 0.0F;
 
     public FireflyEntity(EntityType<?> type, Level level) {
         super(type, level);
         this.noPhysics = true;
-        this.lifetime = 600 + level.getRandom().nextInt(600);
+        this.lifetime = 800 + level.getRandom().nextInt(600);
+        this.wanderPhase = level.getRandom().nextFloat() * 100.0F;
     }
 
     public FireflyVariant getVariant() {
@@ -57,24 +51,31 @@ public class FireflyEntity extends Entity {
     private void pickNewTarget() {
         if (this.homePos == null) return;
 
-        for (int i = 0; i < 5; i++) {
-            double proposedX = this.homePos.getX() + (this.random.nextDouble() - 0.5) * 8.0;
-            double proposedZ = this.homePos.getZ() + (this.random.nextDouble() - 0.5) * 8.0;
+        // Roam around current position, anchored gently around home area (within 16 blocks)
+        double anchorX = (this.getX() + this.homePos.getX()) * 0.5D;
+        double anchorZ = (this.getZ() + this.homePos.getZ()) * 0.5D;
 
-            this.mutablePos.set(proposedX, this.getY() + 2.0, proposedZ);
-            boolean foundGround = false;
+        for (int i = 0; i < 8; i++) {
+            double proposedX = anchorX + (this.random.nextDouble() - 0.5D) * 12.0D;
+            double proposedZ = anchorZ + (this.random.nextDouble() - 0.5D) * 12.0D;
+            double scanStartY = Math.max(this.getY() + 2.0D, this.homePos.getY() + 2.0D);
 
-            for (int j = 0; j < 6; j++) {
-                if (!this.level().getBlockState(this.mutablePos).isAir()) {
-                    foundGround = true;
+            this.mutablePos.set(proposedX, scanStartY, proposedZ);
+            boolean foundSurface = false;
+
+            for (int j = 0; j < 8; j++) {
+                BlockState state = this.level().getBlockState(this.mutablePos);
+                if (!state.isAir()) {
+                    foundSurface = true;
                     break;
                 }
                 this.mutablePos.move(0, -1, 0);
             }
 
-            if (foundGround) {
-                double groundY = this.mutablePos.getY() + 1.0;
-                double proposedY = groundY + 0.5 + (this.random.nextDouble() * 3.0);
+            if (foundSurface) {
+                double surfaceY = this.mutablePos.getY() + 1.0D;
+                // Target a gentle altitude of 0.8 to 2.8 blocks above surface
+                double proposedY = surfaceY + 0.8D + (this.random.nextDouble() * 2.0D);
 
                 this.mutablePos.set(proposedX, proposedY, proposedZ);
                 BlockState targetState = this.level().getBlockState(this.mutablePos);
@@ -83,14 +84,20 @@ public class FireflyEntity extends Entity {
                     this.targetX = proposedX;
                     this.targetY = proposedY;
                     this.targetZ = proposedZ;
+
+                    // 25% chance to linger/hover gracefully when reaching the destination
+                    if (this.random.nextFloat() < 0.25F) {
+                        this.hoverTicks = 40 + this.random.nextInt(50);
+                    }
                     return;
                 }
             }
         }
 
-        this.targetX = this.homePos.getX();
-        this.targetY = this.getY() - 1.0;
-        this.targetZ = this.homePos.getZ();
+        // Fallback: stay gently above current position or home
+        this.targetX = this.getX() + (this.random.nextDouble() - 0.5D) * 4.0D;
+        this.targetY = Math.max(this.getY(), this.homePos.getY() + 1.0D);
+        this.targetZ = this.getZ() + (this.random.nextDouble() - 0.5D) * 4.0D;
     }
 
     @Override
@@ -105,82 +112,108 @@ public class FireflyEntity extends Entity {
 
         this.age++;
         this.yRotO = this.getYRot();
+        this.xRotO = this.getXRot();
 
         if (this.age > this.lifetime) {
+            this.clearDynamicLight();
             this.discard();
             return;
         }
 
-        // Despawn safely if no player is nearby (uses Level API, no direct Minecraft.getInstance())
+        // Despawn safely if no player is nearby
         if (this.age % 40 == 0) {
             if (this.level().getNearestPlayer(this, 64.0D) == null) {
+                this.clearDynamicLight();
                 this.discard();
                 return;
             }
         }
 
-        // Vertical obstacle and water checking
-        if (this.age % 4 == 0) {
-            if (this.isInWater()) {
-                this.vy += 0.05;
+        // Check if currently hovering in place
+        if (this.hoverTicks > 0) {
+            this.hoverTicks--;
+            // Gentle hovering drag and organic sinusoidal bobbing
+            this.vx *= 0.85D;
+            this.vy *= 0.85D;
+            this.vz *= 0.85D;
+            this.vy += Math.sin(this.age * 0.12D + this.wanderPhase) * 0.003D;
+
+            if (this.hoverTicks == 0) {
+                this.pickNewTarget();
+            }
+        } else {
+            // Travelling towards target with organic curving flight
+            double dx = this.targetX - this.getX();
+            double dy = this.targetY - this.getY();
+            double dz = this.targetZ - this.getZ();
+            double distSq = dx * dx + dy * dy + dz * dz;
+
+            if (distSq < 0.64D || this.age % 120 == 0) {
+                this.pickNewTarget();
             } else {
-                this.mutablePos.set(this.getX(), this.getY() - 1.0, this.getZ());
+                double dist = Math.sqrt(distSq);
+                double cruiseSpeed = 0.035D;
+                double accel = 0.06D;
 
-                if (!this.level().getBlockState(this.mutablePos).isAir()) {
-                    this.vy += 0.03;
-                } else {
-                    boolean isTooHigh = true;
-                    for (int i = 0; i < 3; i++) {
-                        this.mutablePos.move(0, -1, 0);
-                        if (!this.level().getBlockState(this.mutablePos).isAir()) {
-                            isTooHigh = false;
-                            break;
-                        }
-                    }
+                // Smooth steering towards waypoint
+                this.vx += (dx / dist * cruiseSpeed - this.vx) * accel;
+                this.vy += (dy / dist * cruiseSpeed - this.vy) * accel;
+                this.vz += (dz / dist * cruiseSpeed - this.vz) * accel;
 
-                    if (isTooHigh) {
-                        this.vy -= 0.03;
-                        if (this.targetY > this.getY()) {
-                            this.targetY = this.getY() - 1.0;
-                        }
-                    }
-                }
+                // Subtle organic harmonic meander for lifelike curved trajectories
+                this.vx += Math.cos(this.age * 0.06D + this.wanderPhase) * 0.0025D;
+                this.vz += Math.sin(this.age * 0.06D + this.wanderPhase) * 0.0025D;
+                this.vy += Math.sin(this.age * 0.10D + this.wanderPhase) * 0.0018D;
             }
         }
 
-        double dx = this.targetX - this.getX();
-        double dy = this.targetY - this.getY();
-        double dz = this.targetZ - this.getZ();
-
-        double distSqr = dx * dx + dy * dy + dz * dz;
-
-        if (distSqr < 1.0 || this.age % 80 == 0) {
-            this.pickNewTarget();
-        } else if (distSqr > 0.001) {
-            double distance = Math.sqrt(distSqr);
-            double speed = 0.04;
-            this.vx += (dx / distance * speed - this.vx) * 0.1;
-            this.vy += (dy / distance * speed - this.vy) * 0.1;
-            this.vz += (dz / distance * speed - this.vz) * 0.1;
+        // Obstacle avoidance: steer away from solid collision shapes ahead
+        double lookAheadX = this.getX() + this.vx * 12.0D;
+        double lookAheadY = this.getY() + this.vy * 12.0D;
+        double lookAheadZ = this.getZ() + this.vz * 12.0D;
+        this.mutablePos.set(lookAheadX, lookAheadY, lookAheadZ);
+        BlockState stateAhead = this.level().getBlockState(this.mutablePos);
+        if (!stateAhead.isAir() && !stateAhead.getCollisionShape(this.level(), this.mutablePos).isEmpty()) {
+            this.vy += 0.015D;
+            this.vx *= 0.7D;
+            this.vz *= 0.7D;
         }
 
-        double hover = Math.sin(this.age * 0.15) * 0.015;
-        this.setPos(this.getX() + this.vx, this.getY() + this.vy + hover, this.getZ() + this.vz);
+        // Water and ground clearance
+        if (this.isInWater()) {
+            this.vy += 0.04D;
+        } else {
+            this.mutablePos.set(this.getX(), this.getY() - 0.7D, this.getZ());
+            if (!this.level().getBlockState(this.mutablePos).isAir()) {
+                this.vy += 0.012D;
+            }
+        }
 
-        float targetYaw = (float) (Mth.atan2(this.vz, this.vx) * (180F / Math.PI)) + 90.0F;
-        float smoothYaw = Mth.approachDegrees(this.getYRot(), targetYaw, 10.0F);
-        this.setYRot(smoothYaw);
+        // Apply position
+        this.setPos(this.getX() + this.vx, this.getY() + this.vy, this.getZ() + this.vz);
 
-        // Ambient dynamic light on the ground and surroundings (controlled by config)
+        // Smooth rotation
+        double horizontalDistSq = this.vx * this.vx + this.vz * this.vz;
+        if (horizontalDistSq > 0.00004D) {
+            float targetYaw = (float) (Mth.atan2(this.vz, this.vx) * (180.0D / Math.PI)) + 90.0F;
+            this.setYRot(Mth.approachDegrees(this.getYRot(), targetYaw, 8.0F));
+
+            float horizontalSpeed = (float) Math.sqrt(horizontalDistSq);
+            float targetPitch = (float) (-Mth.atan2(this.vy, horizontalSpeed) * (180.0D / Math.PI)) * 0.4F;
+            targetPitch = Mth.clamp(targetPitch, -30.0F, 30.0F);
+            this.setXRot(Mth.approachDegrees(this.getXRot(), targetPitch, 6.0F));
+        }
+
+        // Ambient dynamic light (safe client-side update with Block.UPDATE_CLIENTS)
         if (this.age % 2 == 0) {
             this.updateDynamicLight();
         }
 
-        // Ambient glow particle effect (controlled by persistent config)
+        // Ambient glow particle effect
         if (FireflyConfig.get().enableParticles && this.level().isClientSide() && this.random.nextFloat() < 0.05F) {
-            double px = this.getX() + (this.random.nextDouble() - 0.5) * 0.1;
-            double py = this.getY() + (this.random.nextDouble() - 0.5) * 0.1 + 0.1;
-            double pz = this.getZ() + (this.random.nextDouble() - 0.5) * 0.1;
+            double px = this.getX() + (this.random.nextDouble() - 0.5D) * 0.1D;
+            double py = this.getY() + (this.random.nextDouble() - 0.5D) * 0.1D + 0.1D;
+            double pz = this.getZ() + (this.random.nextDouble() - 0.5D) * 0.1D;
 
             this.level().addParticle(
                     ParticleTypes.GLOW,
@@ -204,7 +237,7 @@ public class FireflyEntity extends Entity {
         this.clearDynamicLight();
 
         if (this.level().getBlockState(currentPos).isAir()) {
-            this.level().setBlock(currentPos, Blocks.LIGHT.defaultBlockState().setValue(LightBlock.LEVEL, 8), 3);
+            this.level().setBlock(currentPos, Blocks.LIGHT.defaultBlockState().setValue(LightBlock.LEVEL, 8), Block.UPDATE_CLIENTS);
             this.lastLightPos = currentPos.immutable();
         }
     }
@@ -212,7 +245,7 @@ public class FireflyEntity extends Entity {
     private void clearDynamicLight() {
         if (this.lastLightPos != null) {
             if (this.level().isClientSide() && this.level().getBlockState(this.lastLightPos).is(Blocks.LIGHT)) {
-                this.level().setBlock(this.lastLightPos, Blocks.AIR.defaultBlockState(), 3);
+                this.level().setBlock(this.lastLightPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
             }
             this.lastLightPos = null;
         }
@@ -229,6 +262,11 @@ public class FireflyEntity extends Entity {
         super.remove(reason);
     }
 
+    @Override
+    public void onClientRemoval() {
+        this.clearDynamicLight();
+        super.onClientRemoval();
+    }
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource damageSource, float amount) {
