@@ -44,7 +44,11 @@ public class FireflyFabricClient implements ClientModInitializer {
             if (world.isClientSide() && entity instanceof FireflyEntity firefly) {
                 ItemStack held = player.getItemInHand(hand);
                 if (held.is(Items.GLASS_BOTTLE)) {
+                    if (player.getCooldowns().isOnCooldown(held)) {
+                        return InteractionResult.CONSUME;
+                    }
                     if (ClientPlayNetworking.canSend(CatchFireflyPayload.TYPE)) {
+                        player.getCooldowns().addCooldown(held, 10);
                         player.playSound(SoundEvents.BOTTLE_FILL, 1.0F, 1.0F);
                         for (int i = 0; i < 8; i++) {
                             double px = firefly.getX() + (world.getRandom().nextDouble() - 0.5D) * 0.3D;

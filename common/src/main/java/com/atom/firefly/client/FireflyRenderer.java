@@ -38,6 +38,7 @@ public class FireflyRenderer extends EntityRenderer<FireflyEntity, FireflyRender
         super.extractRenderState(entity, state, partialTick);
         state.ageInTicks = entity.tickCount + partialTick;
         state.yRot = Mth.lerp(partialTick, entity.yRotO, entity.getYRot());
+        state.xRot = Mth.lerp(partialTick, entity.xRotO, entity.getXRot());
     }
 
     @Override
@@ -48,10 +49,11 @@ public class FireflyRenderer extends EntityRenderer<FireflyEntity, FireflyRender
         poseStack.scale(-1.0F, -1.0F, 1.0F);
 
         poseStack.mulPose(Axis.YP.rotationDegrees(state.yRot));
+        poseStack.mulPose(Axis.XP.rotationDegrees(state.xRot));
 
         this.model.setupAnim(state);
 
-        collector.submitModel(this.model, state, poseStack, SOLID_RENDER_TYPE, state.lightCoords, OverlayTexture.NO_OVERLAY, -1, null, EntityRenderState.NO_OUTLINE, null);
+        collector.submitModel(this.model, state, poseStack, SOLID_RENDER_TYPE, state.lightCoords, OverlayTexture.NO_OVERLAY, -1, null, state.outlineColor, null);
 
         collector.submitModel(this.model, state, poseStack, GLOW_RENDER_TYPE, 15728880, OverlayTexture.NO_OVERLAY, -1, null, EntityRenderState.NO_OUTLINE, null);
 
@@ -63,5 +65,6 @@ public class FireflyRenderer extends EntityRenderer<FireflyEntity, FireflyRender
     public static class FireflyRenderState extends EntityRenderState {
         public float ageInTicks;
         public float yRot;
+        public float xRot;
     }
 }
